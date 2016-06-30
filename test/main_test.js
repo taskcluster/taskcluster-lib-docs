@@ -15,16 +15,22 @@ suite('End to End', () => {
     });
   });
 
-  test('schemas available', function() {
-    // debugger;
-    let doc = documenter({
+  test('tarball exists', async function() {
+    let schemas = [
+      {name: 'foo.json', content: 'foo'},
+      {name: 'bar.json', content: 'bar'},
+    ];
+    let doc = await documenter({
       //Schema name + content
-      schemas: validate.rawSchemas,
+      schemas,
     });
+
+    // testing tarball exists
+    assert.ok(doc.tarball);
   });
 
-  test('simplest case with nothing to do', function() {
-    return documenter({
+  test('simplest case with nothing to do', async function() {
+    let doc = documenter({
       folder: path.join(__dirname, 'docs'),
       bucket: 'taskcluster-raw-docs-test',
       project: 'taskcluster-lib-docs',
