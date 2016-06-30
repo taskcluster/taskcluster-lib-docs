@@ -10,6 +10,16 @@ suite('End to End', () => {
   setup(async () => {
     validate = await validator({
       folder: path.join(__dirname, 'schemas'),
+      baseUrl: 'http://localhost:1203/',
+      constants: {},
+    });
+  });
+
+  test('schemas available', function() {
+    // debugger;
+    let doc = documenter({
+      //Schema name + content
+      schemas: validate.rawSchemas,
     });
   });
 
@@ -19,16 +29,6 @@ suite('End to End', () => {
       bucket: 'taskcluster-raw-docs-test',
       project: 'taskcluster-lib-docs',
       version: '0.0.1',
-    });
-  });
-
-  test('only schemas', function() {
-    return documenter({
-      folder: path.join(__dirname, 'docs'),
-      bucket: 'taskcluster-raw-docs-test',
-      project: 'taskcluster-lib-docs',
-      version: '0.0.1',
-      schemas: validate.schemas,
     });
   });
 
