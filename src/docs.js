@@ -1,35 +1,35 @@
 let tar = require('tar-stream');
+let _ = require('lodash');
+let assert = require('assert');
+let fs = require('fs');
+let path = require('path');
 
-async function documenter(options = {}) {
-  // print schemas
-  console.log(options.schemas);
+async function documenter(options) {
 
-  // take schemas(name + content) + add it to stream tarball
-  // pack is a streams2 stream
-  let tarball = tar.pack();
+  options = _.defaults({}, options, {
+    schemas: [],
+  });
+  assert(options.schemas, 'options.schemas must be given');
+  assert(options.schemas instanceof Array, 'options.schemas must be an array');
 
   let schemas = options.schemas;
+  let tarball = tar.pack();
 
-  if (schemas) {
-    for (let schema of schemas) {
-      tarball.entry({name: schema.name}, schema.content);
-    }
-  }
+  //add schemas to tarball
+  schemas.forEach(schema => {
+    let data = JSON.stringify(schema, null, 2);
+    tarball.entry({name: 'schema/' + schema.id}, data);
+  });
+
   tarball.finalize();
+  // pipe the pack stream somewhere
+  tarball.pipe(process.stdout);
 
   let output = {
     tarball,
   };
 
   return output;
-
-  // add docs to tarball
-  // everythg in reference (api + exchanges) + add it to tarball
-  // generator metadata.json > add it to tarball
-
-  // upload tarball to S3
-  // Add a utility function that can be used to get all of the
-  // schemas that have been loaded.
 }
 
 module.exports = documenter;
