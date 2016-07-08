@@ -24,11 +24,12 @@ suite('End to End', () => {
     ];
     let doc = await documenter({
       schemas, // schema.id + content
+      docsFolder: path.join(__dirname, 'docs'),
     });
     assert.ok(doc.tarball); // testing tarball exists
   });
 
-  test('tarball contains schemas with prefix', async function(done) {
+  test('tarball contains schemas and docs with prefix', async function(done) {
     let schemas = [
       {id: 'http://example.com/foo.schema.json', schema: 'http://json-schema.org/draft-04/schema#'},
       {id: 'http://example.com/bar.schema.json', schema: 'http://json-schema.org/draft-04/schema#'},
@@ -37,10 +38,12 @@ suite('End to End', () => {
     let shoulds = [
       'schema/http://example.com/foo.schema.json',
       'schema/http://example.com/bar.schema.json',
+      'docs/example.md',
     ];
 
     let doc = await documenter({
-      schemas, // schema.id + content
+      schemas,
+      docsFolder: path.join(__dirname, 'docs'),
     });
 
     let tarball = doc.tarball;
