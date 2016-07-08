@@ -3,7 +3,6 @@ let _ = require('lodash');
 let assert = require('assert');
 let fs = require('mz/fs');
 let path = require('path');
-let walk = require('walk');
 let recursiveReadSync = require('recursive-readdir-sync');
 
 async function documenter(options) {
