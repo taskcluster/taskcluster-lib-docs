@@ -20,6 +20,7 @@
     "lodash": "^4.13.1",
     "mz": "^2.4.0",
     "promise": "^7.0.4",
+    "recursive-readdir-sync": "^1.0.6",
     "tar-stream": "^1.5.2",
     "taskcluster-lib-validate": "^1.1.1"
   },
