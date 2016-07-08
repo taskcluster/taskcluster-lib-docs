@@ -3,19 +3,8 @@ suite('End to End', () => {
   let path = require('path');
   let documenter = require('../');
   let debug = require('debug')('test');
-  let validator = require('taskcluster-lib-validate');
   let _ = require('lodash');
   let tar = require('tar-stream');
-
-  let validate = null;
-
-  setup(async () => {
-    validate = await validator({
-      folder: path.join(__dirname, 'schemas'),
-      baseUrl: 'http://localhost:1203/',
-      constants: {'my-constant': 42},
-    });
-  });
 
   test('tarball exists', async function() {
     let schemas = [
