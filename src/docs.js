@@ -44,8 +44,6 @@ async function documenter(options) {
   }));
 
   tarball.finalize();
-  // pipe the pack stream somewhere
-  tarball.pipe(process.stdout);
 
   let output = {
     tarball,
