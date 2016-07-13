@@ -1,4 +1,3 @@
-<!-- This is an *example* markdown document! We should add front-matter later. -->
 ---
 title: Just saying
 description: Nothing to see here
