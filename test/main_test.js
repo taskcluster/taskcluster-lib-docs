@@ -9,8 +9,8 @@ suite('End to End', () => {
 
   test('tarball exists', async function() {
     let schemas = [
-      {id: 'http://example.com/foo.schema.json', schema: 'http://json-schema.org/draft-04/schema#'},
-      {id: 'http://example.com/bar.schema.json', schema: 'http://json-schema.org/draft-04/schema#'},
+      {'foo.json': {name: 'http://json-schema.org/draft-04/schema#'}},
+      {'bar.json': {name: 'http://json-schema.org/draft-04/schema#'}},
     ];
     let doc = await documenter({
       schemas, // schema.id + content
@@ -69,15 +69,15 @@ suite('End to End', () => {
 
   test('tarball contains only schemas', async function(done) {
     let schemas = [
-      {id: 'http://example.com/foo.schema.json', schema: 'http://json-schema.org/draft-04/schema#'},
-      {id: 'http://example.com/bar.schema.json', schema: 'http://json-schema.org/draft-04/schema#'},
+      {'foo.json': {name: 'http://json-schema.org/draft-04/schema#'}},
+      {'bar.json': {name: 'http://json-schema.org/draft-04/schema#'}},
     ];
 
     let docFolder = [];
 
     let shoulds = [
-      'schema/http://example.com/foo.schema.json',
-      'schema/http://example.com/bar.schema.json',
+      'schema/foo.json',
+      'schema/bar.json',
     ];
 
     let doc = await documenter({
@@ -112,12 +112,106 @@ suite('End to End', () => {
     tarball.pipe(extractor);
   });
 
-  test('simplest case with nothing to do', async function() {
-    let doc = documenter({
-      docsFolder: rootdir.get() + '/test/docs',
-      bucket: 'taskcluster-raw-docs-test',
-      project: 'taskcluster-lib-docs',
-      version: '0.0.1',
+  test('tarball contains only references', async function(done) {
+    let references = [
+      {name: 'api', reference: 'api.reference'},
+      {name: 'events', reference: 'exchanges.reference'},
+    ];
+
+    let docFolder = [];
+    let schemas = [];
+
+    let shoulds = [
+      'references/api.json',
+      'references/events.json',
+    ];
+
+    let doc = await documenter({
+      schemas,
+      references,
     });
+
+    let tarball = doc.tarball;
+
+    let extractor = tar.extract();
+    extractor.on('entry', (header, stream, callback) => {
+      let entryName = header.name;
+      let contains = false;
+      for (let expectedValue of shoulds) {
+        if (expectedValue == entryName) {
+          contains = true;
+          break;
+        }
+      }
+      assert.ok(contains);
+
+      stream.on('end', () => {
+        callback(); // ready for next entry
+      });
+
+      stream.resume(); // just auto drain the stream
+    });
+
+    extractor.on('finish', function() {
+      done();
+    });
+
+    tarball.pipe(extractor);
   });
+
+  test('tarball contains only metadata', async function(done) {
+
+    let metadata = [
+      {version: 1, tier: 'core'},
+    ];
+
+    let references = [];
+    let docFolder = [];
+    let schemas = [];
+
+    let shoulds = [
+      'metadata.json',
+    ];
+
+    let doc = await documenter({
+      schemas,
+      metadata,
+    });
+
+    let tarball = doc.tarball;
+
+    let extractor = tar.extract();
+    extractor.on('entry', (header, stream, callback) => {
+      let entryName = header.name;
+      let contains = false;
+      for (let expectedValue of shoulds) {
+        if (expectedValue == entryName) {
+          contains = true;
+          break;
+        }
+      }
+      assert.ok(contains);
+
+      stream.on('end', () => {
+        callback(); // ready for next entry
+      });
+
+      stream.resume(); // just auto drain the stream
+    });
+
+    extractor.on('finish', function() {
+      done();
+    });
+
+    tarball.pipe(extractor);
+  });
+
+  // test('simplest case with nothing to do', async function() {
+  //   let doc = documenter({
+  //     docsFolder: rootdir.get() + '/test/docs',
+  //     bucket: 'taskcluster-raw-docs-test',
+  //     project: 'taskcluster-lib-docs',
+  //     version: '0.0.1',
+  //   });
+  // });
 });
