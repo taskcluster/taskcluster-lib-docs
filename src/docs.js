@@ -6,30 +6,41 @@ let path = require('path');
 let recursiveReadSync = require('recursive-readdir-sync');
 
 async function documenter(options) {
-
   options = _.defaults({}, options, {
+    metadata: null,
     schemas: [],
     docsFolder: null,
+    references: [],
   });
   assert(options.schemas, 'options.schemas must be given');
   assert(options.schemas instanceof Array, 'options.schemas must be an array');
 
-  let schemas = options.schemas;
   let tarball = tar.pack();
+  let metadata = options.metadata;
 
-  // add schemas to tarball
+  if (metadata) {
+    let data = JSON.stringify(metadata, null, 2);
+    tarball.entry({name: 'metadata.json'}, data);
+  }
+
+  let schemas = options.schemas;
+  let schemaFilename = Object.keys(schema)[0];
   schemas.forEach(schema => {
     let data = JSON.stringify(schema, null, 2);
-    tarball.entry({name: 'schema/' + schema.id}, data);
+    tarball.entry({name: 'schema/' + schemaFilename}, data);
+  });
+
+  let references = options.references;
+  references.forEach(reference => {
+    let data = JSON.stringify(reference, null, 2);
+    tarball.entry({name: 'references/' + reference.name + '.json'}, data);
   });
 
   if (options.docsFolder !== null) {
-    // add docs to tarball
     let docs = options.docsFolder;
     let files = recursiveReadSync(options.docsFolder);
 
     await Promise.all(files.map(async (file) => {
-      //remove the path
       let relativePath = path.basename(file);
       let data = await fs.readFile(file, {encoding: 'utf8'});
       tarball.entry({name: 'docs/' + relativePath}, data);
@@ -37,7 +48,6 @@ async function documenter(options) {
   }
 
   tarball.finalize();
-  // tarball.pipe(process.stdout);
 
   let output = {
     tarball,
@@ -46,3 +56,4 @@ async function documenter(options) {
 }
 
 module.exports = documenter;
+
