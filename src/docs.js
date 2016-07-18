@@ -4,6 +4,7 @@ let assert = require('assert');
 let fs = require('mz/fs');
 let path = require('path');
 let recursiveReadSync = require('recursive-readdir-sync');
+let zlib = require('zlib');
 
 async function documenter(options) {
   options = _.defaults({}, options, {
@@ -24,9 +25,9 @@ async function documenter(options) {
   }
 
   let schemas = options.schemas;
-  let schemaFilename = Object.keys(schema)[0];
   schemas.forEach(schema => {
     let data = JSON.stringify(schema, null, 2);
+    let schemaFilename = Object.keys(schema)[0];
     tarball.entry({name: 'schema/' + schemaFilename}, data);
   });
 
@@ -46,14 +47,18 @@ async function documenter(options) {
       tarball.entry({name: 'docs/' + relativePath}, data);
     }));
   }
-
+  // the stream was added
+  // no more entries
   tarball.finalize();
 
+  let gzip = zlib.createGzip();
+  let tgz = tarball.pipe(gzip);
+
   let output = {
-    tarball,
+    tgz,
   };
+
   return output;
 }
 
 module.exports = documenter;
-

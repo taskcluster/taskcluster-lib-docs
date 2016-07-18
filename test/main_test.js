@@ -1,11 +1,11 @@
 suite('End to End', () => {
   let assert = require('assert');
-  // let path = require('path');
   let documenter = require('../');
   let debug = require('debug')('test');
   let _ = require('lodash');
   let tar = require('tar-stream');
   let rootdir = require('app-root-dir');
+  let zlib = require('zlib');
 
   test('tarball exists', async function() {
     let schemas = [
@@ -15,7 +15,7 @@ suite('End to End', () => {
     let doc = await documenter({
       schemas, // schema.id + content
     });
-    assert.ok(doc.tarball); // testing tarball exists
+    assert.ok(doc.tgz); // testing tarball exists
   });
 
   test('tarball is empty', function() {
@@ -26,7 +26,7 @@ suite('End to End', () => {
       schemas, // schema.id + content
       docsFolder: rootdir.get() + '/test/docs',
     });
-    assert.equal(doc.tarball, null);
+    assert.equal(doc.tgz, null);
   });
 
   test('tarball contains only docs', async function(done) {
@@ -39,7 +39,7 @@ suite('End to End', () => {
       docsFolder: rootdir.get() + '/test/docs',
     });
 
-    let tarball = doc.tarball;
+    let tarball = doc.tgz;
 
     let extractor = tar.extract();
     extractor.on('entry', (header, stream, callback) => {
@@ -64,7 +64,7 @@ suite('End to End', () => {
       done();
     });
 
-    tarball.pipe(extractor);
+    tarball.pipe(zlib.Unzip()).pipe(extractor);
   });
 
   test('tarball contains only schemas', async function(done) {
@@ -84,7 +84,7 @@ suite('End to End', () => {
       schemas,
     });
 
-    let tarball = doc.tarball;
+    let tarball = doc.tgz;
 
     let extractor = tar.extract();
     extractor.on('entry', (header, stream, callback) => {
@@ -109,7 +109,7 @@ suite('End to End', () => {
       done();
     });
 
-    tarball.pipe(extractor);
+    tarball.pipe(zlib.Unzip()).pipe(extractor);
   });
 
   test('tarball contains only references', async function(done) {
@@ -131,7 +131,7 @@ suite('End to End', () => {
       references,
     });
 
-    let tarball = doc.tarball;
+    let tarball = doc.tgz;
 
     let extractor = tar.extract();
     extractor.on('entry', (header, stream, callback) => {
@@ -156,7 +156,7 @@ suite('End to End', () => {
       done();
     });
 
-    tarball.pipe(extractor);
+    tarball.pipe(zlib.Unzip()).pipe(extractor);
   });
 
   test('tarball contains only metadata', async function(done) {
@@ -178,7 +178,7 @@ suite('End to End', () => {
       metadata,
     });
 
-    let tarball = doc.tarball;
+    let tarball = doc.tgz;
 
     let extractor = tar.extract();
     extractor.on('entry', (header, stream, callback) => {
@@ -203,15 +203,7 @@ suite('End to End', () => {
       done();
     });
 
-    tarball.pipe(extractor);
+    tarball.pipe(zlib.Unzip()).pipe(extractor);
   });
 
-  // test('simplest case with nothing to do', async function() {
-  //   let doc = documenter({
-  //     docsFolder: rootdir.get() + '/test/docs',
-  //     bucket: 'taskcluster-raw-docs-test',
-  //     project: 'taskcluster-lib-docs',
-  //     version: '0.0.1',
-  //   });
-  // });
 });
