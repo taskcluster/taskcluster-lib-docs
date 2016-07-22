@@ -8,16 +8,22 @@ let zlib = require('zlib');
 
 async function documenter(options) {
   options = _.defaults({}, options, {
-    metadata: null,
+    tier: null,
+    menuIndex: null,
     schemas: [],
-    docsFolder: null,
+    docsFolder: rootdir.get() + '/docs',
     references: [],
   });
+
   assert(options.schemas, 'options.schemas must be given');
   assert(options.schemas instanceof Array, 'options.schemas must be an array');
 
+  assert(options.tier, 'options.tier must be given');
+  assert(['core', 'platform'].indexOf(options.tier) !== -1, 'options.tier is either core or platform');
+  assert(options.menuIndex, 'options.menuIndex must be given');
+
   let tarball = tar.pack();
-  let metadata = options.metadata;
+  let metadata = {version: 1, tier: options.tier, menuIndex: options.menuIndex};
 
   if (metadata) {
     let data = JSON.stringify(metadata, null, 2);
@@ -37,19 +43,28 @@ async function documenter(options) {
     tarball.entry({name: 'references/' + reference.name + '.json'}, data);
   });
 
-  if (options.docsFolder !== null) {
-    let docs = options.docsFolder;
-    let files = recursiveReadSync(options.docsFolder);
-
-    await Promise.all(files.map(async (file) => {
-      let relativePath = path.basename(file);
-      let data = await fs.readFile(file, {encoding: 'utf8'});
-      tarball.entry({name: 'docs/' + relativePath}, data);
-    }));
+  if (options.docsFolder) {
+    try {
+      let docs = options.docsFolder;
+      let files = recursiveReadSync(options.docsFolder);
+      await Promise.all(files.map(async (file) => {
+        let relativePath = path.basename(file);
+        let data = await fs.readFile(file, {encoding: 'utf8'});
+        tarball.entry({name: 'docs/' + relativePath}, data);
+      }));
+    } catch (err) {
+      if (err.code == 'ENOENT') {
+        console.log('Docs folder does not exist');
+      } else {
+        throw err;
+      }
+    }
   }
+
   // the stream was added
   // no more entries
   tarball.finalize();
+  // tarball.pipe(process.stdout);
 
   let gzip = zlib.createGzip();
   let tgz = tarball.pipe(gzip);
