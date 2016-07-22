@@ -6,36 +6,35 @@ suite('End to End', () => {
   let tar = require('tar-stream');
   let rootdir = require('app-root-dir');
   let zlib = require('zlib');
+  let validator = require('taskcluster-lib-validate');
 
   test('tarball exists', async function() {
-    let schemas = [
-      {'foo.json': {schema: 'http://json-schema.org/draft-04/schema#'}},
-      {'bar.json': {schema: 'http://json-schema.org/draft-04/schema#'}},
-    ];
+    let validate = await validator({
+      folder: rootdir.get() + 'test/schemas',
+      baseUrl: 'http://localhost:1203/',
+      constants: {'my-constant': 42},
+    });
+
+    let schemas = validate.schemas;
 
     let tier = 'core';
-    let menuIndex = 1;
 
     let doc = await documenter({
       schemas,
       tier,
-      menuIndex,
     });
     assert.ok(doc.tgz);
   });
 
   test('tarball is empty', function() {
-    let schemas = [];
+    let schemas = {};
     let docsFolder = [];
 
     let tier = 'core';
-    let menuIndex = 1;
 
     let doc = documenter({
       tier,
-      menuIndex,
       schemas,
-      // docsFolder: rootdir.get() + '/test/docs',
       docsFolder: rootdir.get() + '/docs',
     });
     assert.equal(doc.tgz, null);
@@ -43,9 +42,8 @@ suite('End to End', () => {
 
   test('tarball contains docs and metadata', async function(done) {
 
-    let schemas = [];
+    let schemas = {};
     let tier = 'core';
-    let menuIndex = 1;
 
     let shoulds = [
       'docs/example.md',
@@ -54,10 +52,8 @@ suite('End to End', () => {
 
     let doc = await documenter({
       schemas,
-      // docsFolder: rootdir.get() + '/test/docs',
       docsFolder: rootdir.get() + '/docs',
       tier,
-      menuIndex,
     });
 
     let tarball = doc.tgz;
@@ -89,13 +85,15 @@ suite('End to End', () => {
   });
 
   test('tarball contains schemas and metadata', async function(done) {
-    let schemas = [
-      {'foo.json': {schema: 'http://json-schema.org/draft-04/schema#'}},
-      {'bar.json': {schema: 'http://json-schema.org/draft-04/schema#'}},
-    ];
+    let validate = await validator({
+      folder: rootdir.get() + 'test/schemas',
+      baseUrl: 'http://localhost:1203/',
+      constants: {'my-constant': 42},
+    });
+
+    let schemas = validate.schemas;
 
     let tier = 'core';
-    let menuIndex = 1;
 
     let docFolder = [];
 
@@ -108,7 +106,6 @@ suite('End to End', () => {
     let doc = await documenter({
       schemas,
       tier,
-      menuIndex,
     });
 
     let tarball = doc.tgz;
@@ -146,9 +143,8 @@ suite('End to End', () => {
     ];
 
     let tier = 'core';
-    let menuIndex = 1;
 
-    let schemas = [];
+    let schemas = {};
 
     let shoulds = [
       'references/api.json',
@@ -160,7 +156,6 @@ suite('End to End', () => {
       schemas,
       references,
       tier,
-      menuIndex,
     });
 
     let tarball = doc.tgz;
@@ -193,9 +188,8 @@ suite('End to End', () => {
 
   test('tarball contains only metadata', async function(done) {
 
-    let schemas = [];
+    let schemas = {};
     let tier = 'core';
-    let menuIndex = 1;
 
     let shoulds = [
       'metadata.json',
@@ -204,7 +198,6 @@ suite('End to End', () => {
     let doc = await documenter({
       schemas,
       tier,
-      menuIndex,
     });
 
     let tarball = doc.tgz;

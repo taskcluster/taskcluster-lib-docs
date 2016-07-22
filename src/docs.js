@@ -5,36 +5,31 @@ let fs = require('mz/fs');
 let path = require('path');
 let recursiveReadSync = require('recursive-readdir-sync');
 let zlib = require('zlib');
+let rootdir = require('app-root-dir');
 
 async function documenter(options) {
   options = _.defaults({}, options, {
     tier: null,
-    menuIndex: null,
-    schemas: [],
+    schemas: {},
+    menuIndex: 10,
     docsFolder: rootdir.get() + '/docs',
     references: [],
   });
 
   assert(options.schemas, 'options.schemas must be given');
-  assert(options.schemas instanceof Array, 'options.schemas must be an array');
 
   assert(options.tier, 'options.tier must be given');
   assert(['core', 'platform'].indexOf(options.tier) !== -1, 'options.tier is either core or platform');
-  assert(options.menuIndex, 'options.menuIndex must be given');
 
   let tarball = tar.pack();
   let metadata = {version: 1, tier: options.tier, menuIndex: options.menuIndex};
-
-  if (metadata) {
-    let data = JSON.stringify(metadata, null, 2);
-    tarball.entry({name: 'metadata.json'}, data);
-  }
+  let data = JSON.stringify(metadata, null, 2);
+  tarball.entry({name: 'metadata.json'}, data);
 
   let schemas = options.schemas;
-  schemas.forEach(schema => {
+  _.forEach(schemas, (name, schema) => {
     let data = JSON.stringify(schema, null, 2);
-    let schemaFilename = Object.keys(schema)[0];
-    tarball.entry({name: 'schema/' + schemaFilename}, data);
+    tarball.entry({name: 'schema/' + name}, data);
   });
 
   let references = options.references;
