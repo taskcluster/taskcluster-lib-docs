@@ -39,10 +39,11 @@ suite('End to End', () => {
     let tier = 'core';
 
     let cfg = base.config();
-    let credentials = cfg.taskcluster;
+    let credentials = cfg.taskcluster.credentials;
     let publish = true;
 
     let doc = await documenter({
+      project: 'testing',
       schemas,
       tier,
       credentials,

@@ -74,9 +74,7 @@ async function documenter(options) {
       credentials: options.credentials,
     });
 
-    if (options.project !== null) {
-      options.project = project.name;
-    } else {
+    if (!options.project) {
       let pack = require(rootdir.get() + '/package.json');
       options.project = pack.name;
     }
