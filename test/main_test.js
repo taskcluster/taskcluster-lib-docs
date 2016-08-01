@@ -29,14 +29,10 @@ suite('End to End', () => {
 
   test('test publish tarball', async function() {
     let validate = await validator({
-      folder: rootdir.get() + 'test/schemas',
+      folder: './test/schemas',
       baseUrl: 'http://localhost:1203/',
       constants: {'my-constant': 42},
     });
-
-    let schemas = validate.schemas;
-
-    let tier = 'core';
 
     let cfg = base.config();
     let credentials = cfg.taskcluster.credentials;
@@ -44,24 +40,18 @@ suite('End to End', () => {
 
     let doc = await documenter({
       project: 'testing',
-      schemas,
-      tier,
+      schemas: validate.schemas,
+      tier: 'core',
       credentials,
+      docsFolder: './test/docs/',
       publish,
     });
     assert.ok(doc.tgz);
   });
 
   test('tarball is empty', function() {
-    let schemas = {};
-    let docsFolder = [];
-
-    let tier = 'core';
-
     let doc = documenter({
-      tier,
-      schemas,
-      docsFolder: rootdir.get() + '/docs',
+      tier: 'core',
     });
     assert.equal(doc.tgz, null);
   });
@@ -75,10 +65,11 @@ suite('End to End', () => {
       'docs/example.md',
       'metadata.json',
     ];
+    let contains = [];
 
     let doc = await documenter({
       schemas,
-      docsFolder: rootdir.get() + '/docs',
+      docsFolder: './test/docs',
       tier,
     });
 
@@ -86,17 +77,8 @@ suite('End to End', () => {
 
     let extractor = tar.extract();
     extractor.on('entry', (header, stream, callback) => {
-      let entryName = header.name;
-      let contains = false;
-      for (let expectedValue of shoulds) {
-        if (expectedValue == entryName) {
-          contains = true;
-          break;
-        }
-      }
-      assert.ok(contains);
-
       stream.on('end', () => {
+        contains.push(header.name);
         callback(); // ready for next entry
       });
 
@@ -104,7 +86,7 @@ suite('End to End', () => {
     });
 
     extractor.on('finish', function() {
-      done();
+      done(assert.deepEqual(contains.sort(), shoulds.sort()));
     });
 
     tarball.pipe(zlib.Unzip()).pipe(extractor);
@@ -112,43 +94,29 @@ suite('End to End', () => {
 
   test('tarball contains schemas and metadata', async function(done) {
     let validate = await validator({
-      folder: rootdir.get() + 'test/schemas',
+      folder: './test/schemas',
       baseUrl: 'http://localhost:1203/',
       constants: {'my-constant': 42},
     });
-
-    let schemas = validate.schemas;
-
-    let tier = 'core';
-
-    let docFolder = [];
 
     let shoulds = [
       'schema/foo.json',
       'schema/bar.json',
       'metadata.json',
     ];
+    let contains = [];
 
     let doc = await documenter({
-      schemas,
-      tier,
+      schemas: validate.schemas,
+      tier: 'core',
     });
 
     let tarball = doc.tgz;
 
     let extractor = tar.extract();
     extractor.on('entry', (header, stream, callback) => {
-      let entryName = header.name;
-      let contains = false;
-      for (let expectedValue of shoulds) {
-        if (expectedValue == entryName) {
-          contains = true;
-          break;
-        }
-      }
-      assert.ok(contains);
-
       stream.on('end', () => {
+        contains.push(header.name);
         callback(); // ready for next entry
       });
 
@@ -156,7 +124,7 @@ suite('End to End', () => {
     });
 
     extractor.on('finish', function() {
-      done();
+      done(assert.deepEqual(contains.sort(), shoulds.sort()));
     });
 
     tarball.pipe(zlib.Unzip()).pipe(extractor);
@@ -168,37 +136,24 @@ suite('End to End', () => {
       {name: 'events', reference: 'exchanges.reference'},
     ];
 
-    let tier = 'core';
-
-    let schemas = {};
-
     let shoulds = [
       'references/api.json',
       'references/events.json',
       'metadata.json',
     ];
+    let contains = [];
 
     let doc = await documenter({
-      schemas,
       references,
-      tier,
+      tier: 'core',
     });
 
     let tarball = doc.tgz;
 
     let extractor = tar.extract();
     extractor.on('entry', (header, stream, callback) => {
-      let entryName = header.name;
-      let contains = false;
-      for (let expectedValue of shoulds) {
-        if (expectedValue == entryName) {
-          contains = true;
-          break;
-        }
-      }
-      assert.ok(contains);
-
       stream.on('end', () => {
+        contains.push(header.name);
         callback(); // ready for next entry
       });
 
@@ -206,41 +161,28 @@ suite('End to End', () => {
     });
 
     extractor.on('finish', function() {
-      done();
+      done(assert.deepEqual(contains.sort(), shoulds.sort()));
     });
 
     tarball.pipe(zlib.Unzip()).pipe(extractor);
   });
 
   test('tarball contains only metadata', async function(done) {
-
-    let schemas = {};
-    let tier = 'core';
-
     let shoulds = [
       'metadata.json',
     ];
 
     let doc = await documenter({
-      schemas,
-      tier,
+      tier: 'core',
     });
+    let contains = [];
 
     let tarball = doc.tgz;
 
     let extractor = tar.extract();
     extractor.on('entry', (header, stream, callback) => {
-      let entryName = header.name;
-      let contains = false;
-      for (let expectedValue of shoulds) {
-        if (expectedValue == entryName) {
-          contains = true;
-          break;
-        }
-      }
-      assert.ok(contains);
-
       stream.on('end', () => {
+        contains.push(header.name);
         callback(); // ready for next entry
       });
 
@@ -248,7 +190,7 @@ suite('End to End', () => {
     });
 
     extractor.on('finish', function() {
-      done();
+      done(assert.deepEqual(contains.sort(), shoulds.sort()));
     });
 
     tarball.pipe(zlib.Unzip()).pipe(extractor);

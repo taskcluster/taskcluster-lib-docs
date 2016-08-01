@@ -33,14 +33,14 @@ async function documenter(options) {
   tarball.entry({name: 'metadata.json'}, data);
 
   let schemas = options.schemas;
-  _.forEach(schemas, (name, schema) => {
+  _.forEach(schemas, (schema, name) => {
     let data = JSON.stringify(schema, null, 2);
     tarball.entry({name: 'schema/' + name}, data);
   });
 
   let references = options.references;
   references.forEach(reference => {
-    let data = JSON.stringify(reference, null, 2);
+    let data = JSON.stringify(reference.reference, null, 2);
     tarball.entry({name: 'references/' + reference.name + '.json'}, data);
   });
 
