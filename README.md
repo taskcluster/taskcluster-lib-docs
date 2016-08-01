@@ -37,7 +37,7 @@ The following are the options that can be passed to this library. They are liste
 
     // The name of the project will automatically be set to your package name from package.json,
     // but can be overridden if needed.
-    project: <name of project in package.json',
+    project: '<name of project in package.json>',
 
     // This must be set to either one of 'platform' or 'core'. It specifies the section
     // of the docs site this will appear in.
