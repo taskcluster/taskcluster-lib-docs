@@ -10,10 +10,9 @@ suite('End to End', () => {
   let base = require('taskcluster-base');
 
   let validate = null;
-  let references = [
-    {name: 'api', reference: 'api.reference'},
-    {name: 'events', reference: 'exchanges.reference'},
-  ];
+  let api = null;
+  let exchanges = null;
+  let references = null;
   let cfg = base.config();
   let credentials = cfg.taskcluster.credentials;
   let tier = 'core';
@@ -24,6 +23,18 @@ suite('End to End', () => {
       baseUrl: 'http://localhost:1203/',
       constants: {'my-constant': 42},
     });
+    api = new base.API({
+      title: 'Testing Stuff',
+      description: 'This is for testing stuff!',
+    });
+    exchanges = new base.Exchanges({
+      title: 'Testing Stuff Again',
+      description: 'Another test!',
+    });
+    references = [
+      {name: 'api', reference: api.reference({baseUrl: 'http://localhost'})},
+      {name: 'events', reference: exchanges.reference({baseUrl: 'http://localhost'})},
+    ];
   });
 
   function assertInTarball(shoulds, tarball, done) {
