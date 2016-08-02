@@ -38,6 +38,8 @@ suite('End to End', () => {
   });
 
   function assertInTarball(shoulds, tarball, done) {
+    shoulds.push('taskcluster-lib-docs/metadata.json');
+    shoulds.push('taskcluster-lib-docs/README.md');
     let contains = [];
     let extractor = tar.extract();
     extractor.on('entry', (header, stream, callback) => {
@@ -91,7 +93,6 @@ suite('End to End', () => {
     });
     let shoulds = [
       'taskcluster-lib-docs/docs/example.md',
-      'taskcluster-lib-docs/metadata.json',
     ];
     assertInTarball(shoulds, doc.tgz, done);
   });
@@ -104,7 +105,6 @@ suite('End to End', () => {
     let shoulds = [
       'taskcluster-lib-docs/schema/foo.json',
       'taskcluster-lib-docs/schema/bar.json',
-      'taskcluster-lib-docs/metadata.json',
     ];
     assertInTarball(shoulds, doc.tgz, done);
   });
@@ -117,7 +117,6 @@ suite('End to End', () => {
     let shoulds = [
       'taskcluster-lib-docs/references/api.json',
       'taskcluster-lib-docs/references/events.json',
-      'taskcluster-lib-docs/metadata.json',
     ];
     assertInTarball(shoulds, doc.tgz, done);
   });
@@ -126,9 +125,6 @@ suite('End to End', () => {
     let doc = await documenter({
       tier,
     });
-    let shoulds = [
-      'taskcluster-lib-docs/metadata.json',
-    ];
-    assertInTarball(shoulds, doc.tgz, done);
+    assertInTarball([], doc.tgz, done);
   });
 });

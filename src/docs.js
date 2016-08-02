@@ -28,7 +28,7 @@ async function documenter(options) {
   assert(['core', 'platform'].indexOf(options.tier) !== -1, 'options.tier is either core or platform');
 
   if (!options.project) {
-    let pack = require(rootdir.get() + '/package.json');
+    let pack = require(path.join(rootdir.get(), 'package.json'));
     options.project = pack.name;
   }
 
@@ -60,6 +60,16 @@ async function documenter(options) {
     tarball.entry(headers(reference.name + '.json', 'references'), data);
   });
 
+  try {
+    let readme = await fs.readFile(path.join(rootdir.get(), 'README.md'));
+    tarball.entry(headers('README.md'), readme);
+  } catch (err) {
+    if (err.code !== 'ENOENT') {
+      throw err;
+    }
+    debug('README.md does not exist.');
+  }
+
   if (options.docsFolder) {
     try {
       let docs = options.docsFolder;
@@ -70,11 +80,10 @@ async function documenter(options) {
         tarball.entry(headers(relativePath, 'docs'), data);
       }));
     } catch (err) {
-      if (err.code == 'ENOENT') {
-        console.log('Docs folder does not exist');
-      } else {
+      if (err.code !== 'ENOENT') {
         throw err;
       }
+      debug('Docs folder does not exist');
     }
   }
 
