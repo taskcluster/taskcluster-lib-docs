@@ -90,8 +90,8 @@ suite('End to End', () => {
       tier,
     });
     let shoulds = [
-      'docs/example.md',
-      'metadata.json',
+      'taskcluster-lib-docs/docs/example.md',
+      'taskcluster-lib-docs/metadata.json',
     ];
     assertInTarball(shoulds, doc.tgz, done);
   });
@@ -102,9 +102,9 @@ suite('End to End', () => {
       tier,
     });
     let shoulds = [
-      'schema/foo.json',
-      'schema/bar.json',
-      'metadata.json',
+      'taskcluster-lib-docs/schema/foo.json',
+      'taskcluster-lib-docs/schema/bar.json',
+      'taskcluster-lib-docs/metadata.json',
     ];
     assertInTarball(shoulds, doc.tgz, done);
   });
@@ -115,9 +115,9 @@ suite('End to End', () => {
       tier,
     });
     let shoulds = [
-      'references/api.json',
-      'references/events.json',
-      'metadata.json',
+      'taskcluster-lib-docs/references/api.json',
+      'taskcluster-lib-docs/references/events.json',
+      'taskcluster-lib-docs/metadata.json',
     ];
     assertInTarball(shoulds, doc.tgz, done);
   });
@@ -127,7 +127,7 @@ suite('End to End', () => {
       tier,
     });
     let shoulds = [
-      'metadata.json',
+      'taskcluster-lib-docs/metadata.json',
     ];
     assertInTarball(shoulds, doc.tgz, done);
   });

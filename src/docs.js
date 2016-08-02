@@ -27,21 +27,37 @@ async function documenter(options) {
   assert(options.tier, 'options.tier must be given');
   assert(['core', 'platform'].indexOf(options.tier) !== -1, 'options.tier is either core or platform');
 
-  let tarball = tar.pack();
-  let metadata = {version: 1, tier: options.tier, menuIndex: options.menuIndex};
-  let data = JSON.stringify(metadata, null, 2);
-  tarball.entry({name: 'metadata.json'}, data);
+  if (!options.project) {
+    let pack = require(rootdir.get() + '/package.json');
+    options.project = pack.name;
+  }
 
-  let schemas = options.schemas;
-  _.forEach(schemas, (schema, name) => {
+  function headers(name, dir) {
+    dir = dir || '';
+    return {name: path.join(options.project, dir, name)};
+  }
+
+  let tarball = tar.pack();
+
+  let metadata = {
+    version: 1,
+    tier: options.tier,
+    menuIndex: options.menuIndex,
+  };
+
+  tarball.entry(
+    headers('metadata.json'),
+    JSON.stringify(metadata, null, 2)
+  );
+
+  _.forEach(options.schemas, (schema, name) => {
     let data = JSON.stringify(schema, null, 2);
-    tarball.entry({name: 'schema/' + name}, data);
+    tarball.entry(headers(name, 'schema'), data);
   });
 
-  let references = options.references;
-  references.forEach(reference => {
+  _.forEach(options.references, (reference) => {
     let data = JSON.stringify(reference.reference, null, 2);
-    tarball.entry({name: 'references/' + reference.name + '.json'}, data);
+    tarball.entry(headers(reference.name + '.json', 'references'), data);
   });
 
   if (options.docsFolder) {
@@ -51,7 +67,7 @@ async function documenter(options) {
       await Promise.all(files.map(async (file) => {
         let relativePath = path.basename(file);
         let data = await fs.readFile(file, {encoding: 'utf8'});
-        tarball.entry({name: 'docs/' + relativePath}, data);
+        tarball.entry(headers(relativePath, 'docs'), data);
       }));
     } catch (err) {
       if (err.code == 'ENOENT') {
@@ -73,11 +89,6 @@ async function documenter(options) {
     let auth = new client.Auth({
       credentials: options.credentials,
     });
-
-    if (!options.project) {
-      let pack = require(rootdir.get() + '/package.json');
-      options.project = pack.name;
-    }
 
     let creds = await auth.awsS3Credentials('read-write', 'taskcluster-raw-docs', options.project + '/');
 
