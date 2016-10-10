@@ -28,30 +28,30 @@ env:
   global:
     - DEBUG='taskcluster-lib-docs test'
 dependencies:
-  - aws-sdk
-  - babel-runtime
-  - lodash
-  - mz
-  - promise
-  - recursive-readdir-sync
-  - s3-upload-stream
-  - tar-stream
-  - taskcluster-base
-  - taskcluster-client
+  - 'aws-sdk'
+  - 'babel-'runtime'
+  - 'lodash
+  - 'mz'
+  - 'promise'
+  - 'recursive-readdir-sync'
+  - 's3-upload-stream'
+  - 'tar-stream'
+  - 'taskcluster-base'
+  - 'taskcluster-client'
 devDependencies:
-  - babel-compile
-  - babel-eslint
-  - babel-preset-taskcluster
-  - eslint-config-taskcluster
-  - eslint-plugin-taskcluster
-  - mocha
-  - mocha-eslint
-  - source-map-support
-  - taskcluster-lib-validate
+  - 'babel-compile'
+  - 'babel-eslint'
+  - 'babel-preset-taskcluster'
+  - 'eslint-config-taskcluster'
+  - 'eslint-plugin-taskcluster'
+  - 'mocha'
+  - 'mocha-eslint'
+  - 'source-map-support'
+  - 'taskcluster-lib-validate'
 main:
   lib/docs.js
 paths:
   test:
-    - +:test/**
+    - test/**
   source:
     - src/**
