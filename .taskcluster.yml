@@ -29,7 +29,7 @@ env:
     - DEBUG='taskcluster-lib-docs test'
 dependencies:
   - 'aws-sdk'
-  - 'babel-'runtime'
+  - 'babel-runtime'
   - 'lodash
   - 'mz'
   - 'promise'
