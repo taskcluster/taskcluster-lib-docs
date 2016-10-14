@@ -1,57 +1,32 @@
----
 version: 0
-sudo: required
-dist: trusty
 metadata:
   name: "taskcluster-lib-docs"
   description: "Generate, build and upload documents for taskcluster projects"
   licence: "MPL-2.0"
-language: node_js
-node_js:
-  - '0.12'
-  - '4'
-  - '5'
-  - '6'
-repository:
-  type: "git"
-  url: "https://github.com/taskcluster/taskcluster-lib-docs.git"
-install:
-  npm install
-before_script:
-  - cp user-config-example.yml user-config.yml
-script:
-  compile: babel-compile -p taskcluster src:lib test:.test
-  prepublish: npm run compile
-  pretest: npm run compile
-  test: mocha .test/lint.js .test/*_test.js
-env:
-  global:
-    - DEBUG='taskcluster-lib-docs test'
-dependencies:
-  - 'aws-sdk'
-  - 'babel-runtime'
-  - 'lodash
-  - 'mz'
-  - 'promise'
-  - 'recursive-readdir-sync'
-  - 's3-upload-stream'
-  - 'tar-stream'
-  - 'taskcluster-base'
-  - 'taskcluster-client'
-devDependencies:
-  - 'babel-compile'
-  - 'babel-eslint'
-  - 'babel-preset-taskcluster'
-  - 'eslint-config-taskcluster'
-  - 'eslint-plugin-taskcluster'
-  - 'mocha'
-  - 'mocha-eslint'
-  - 'source-map-support'
-  - 'taskcluster-lib-validate'
-main:
-  lib/docs.js
-paths:
-  test:
-    - test/**
-  source:
-    - src/**
+  owner: "{{ event.head.user.email }}"
+  source: "{{ event.head.repo.url }}"
+
+tasks:
+  provisionerId: "{{ taskcluster.docker.provisionerId }}"
+  workerType: "{{ taskcluster.docker.workerType }}"
+  extra:
+    github:
+      env: true
+      events:
+        - pull_request.opened
+        - pull_request.synchronize
+        - pull_request.reopened
+        - push
+  payload:
+    maxRunTime: 3600
+    image: "node:5"
+    command:
+      - "/bin/bash"
+      - "-lc"
+      - "git clone {{event.head.repo.url}} repo && cd repo && git checkout {{event.head.sha}} && npm install && npm test"
+    metadata:
+      name: "taskcluster-lib-docs"
+      description: "Generate, build and upload documents for taskcluster projects"
+      licence: "MPL-2.0"
+      owner: "{{ event.head.user.email }}"
+      source: "{{ event.head.repo.url }}"
