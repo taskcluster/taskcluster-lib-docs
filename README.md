@@ -58,8 +58,8 @@ let load = loader({
     }),
   },
   docs: {
-    requires: ['cfg', 'validator', 'reference'],
-    setup: ({cfg, validator, reference}) => docs.documenter({
+    requires: ['cfg', 'validator', 'reference', 'api'],
+    setup: ({cfg, validator, reference, api}) => docs.documenter({
       credentials: cfg.taskcluster.credentials,
       tier: 'core',
       schemas: validator.schemas,
