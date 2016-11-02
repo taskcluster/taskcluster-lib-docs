@@ -38,6 +38,7 @@ Example
 
 ```js
 let docs              = require('taskcluster-lib-docs');
+let v1                = require('./v1')  # the service's API declaration
 let load = loader({
   cfg: {
     requires: ['profile'],
@@ -58,15 +59,15 @@ let load = loader({
     }),
   },
   docs: {
-    requires: ['cfg', 'validator', 'reference', 'api'],
-    setup: ({cfg, validator, reference, api}) => docs.documenter({
+    requires: ['cfg', 'validator', 'reference'],
+    setup: ({cfg, validator, reference}) => docs.documenter({
       credentials: cfg.taskcluster.credentials,
       tier: 'core',
       schemas: validator.schemas,
       references: [
         {
           name: 'api',
-          reference: api.reference({baseUrl: cfg.server.publicUrl + '/v1'}),
+          reference: v1.reference({baseUrl: cfg.server.publicUrl + '/v1'}),
         }, {
           name: 'events',
           reference: reference,
