@@ -38,7 +38,7 @@ Example
 
 ```js
 let docs              = require('taskcluster-lib-docs');
-let v1                = require('./v1')  # the service's API declaration
+let v1                = require('./v1')  # the API declaration
 let load = loader({
   cfg: {
     requires: ['profile'],
