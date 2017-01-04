@@ -28,10 +28,10 @@
     "recursive-readdir-sync": "^1.0.6",
     "s3-upload-stream": "^1.0.7",
     "tar-stream": "^1.5.2",
-    "taskcluster-base": "^5.1.1",
     "taskcluster-client": "^1.0.1"
   },
   "devDependencies": {
+    "taskcluster-base": "^5.1.1",
     "babel-compile": "^2.0.0",
     "babel-eslint": "^6.0.4",
     "babel-preset-taskcluster": "^2.3.0",
