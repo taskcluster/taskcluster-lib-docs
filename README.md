@@ -122,6 +122,9 @@ The following are the options that can be passed to the publisher function in th
     // but can be overridden if needed.
     project: '<name of project in package.json>',
 
+    // The path to the README.md file for the project
+    readme: '<project root>/README.md',
+
     // This must be set to the project's tier, corresponding to the section of the docs reference
     // chapter that this will appear in. Options include 'platform', 'core', 'integrations', 'operations',
     // 'libraries', and 'workers'.

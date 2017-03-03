@@ -19,6 +19,7 @@ async function documenter(options) {
     tier: null,
     schemas: {},
     menuIndex: 10,
+    readme: path.join(rootdir.get(), 'README.md'),
     docsFolder: path.join(rootdir.get(), '/docs'),
     bucket: 'taskcluster-raw-docs',
     references: [],
@@ -71,7 +72,7 @@ async function documenter(options) {
   try {
     tarball.entry(
       headers('README.md'),
-      await fs.readFile(path.join(rootdir.get(), 'README.md'))
+      await fs.readFile(options.readme)
     );
   } catch (err) {
     if (err.code !== 'ENOENT') {
