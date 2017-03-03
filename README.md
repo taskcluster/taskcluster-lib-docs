@@ -107,10 +107,16 @@ Options and Defaults
 The following are the options that can be passed to the publisher function in this library. They are listed with their defaults.
 
 ```js
-    // A set of Taskcluster credentials that must contain both 'clientId' and 'accessToken' fields
-    // The client must have scopes for [ auth:aws-s3:read-write:taskcluster-raw-docs/<project>/ ]
-    // Don't forget the trailing slash!
+
+    // A set of Taskcluster credentials. The client must have scope
+    // `auth:aws-s3:read-write:taskcluster-raw-docs/<project>/`. Don't forget the
+    // trailing slash! Credentials can be omitted if the authBaseUrl points to a
+    // proxy that will add credentials.
     credentials: {},
+
+    // The base URL for the auth service.  This can be useful when running in a task with access
+    // to a taskclusterProxy
+    authBaseUrl: undefined,
 
     // The name of the project will automatically be set to your package name from package.json,
     // but can be overridden if needed.

@@ -14,7 +14,7 @@ let debug = require('debug')('taskcluster-lib-docs');
 async function documenter(options) {
   options = _.defaults({}, options, {
     aws: null,
-    credentials: {},
+    credentials: undefined,
     project: null,
     tier: null,
     schemas: {},
@@ -101,6 +101,7 @@ async function documenter(options) {
     if (!creds) {
       let auth = new client.Auth({
         credentials: options.credentials,
+        baseUrl: options.authBaseUrl,
       });
 
       creds = await auth.awsS3Credentials('read-write', options.bucket, options.project + '/');
