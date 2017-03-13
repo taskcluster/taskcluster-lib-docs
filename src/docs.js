@@ -33,8 +33,9 @@ async function documenter(options) {
     'platform',
     'integrations',
     'operations',
+    'library',
   ].indexOf(options.tier) !== -1,
-    'options.tier is one of core, platform, integration, or operations');
+    'options.tier is one of core, platform, integration, operations, or library');
 
   if (!options.project) {
     let pack = require(path.join(rootdir.get(), 'package.json'));
