@@ -48,6 +48,11 @@ async function documenter(options) {
     return {name: path.join(dir || '', name)};
   }
 
+  function getDocumentationUrl() {
+    let referenceUrl = 'https://docs.taskcluster.net/reference/';
+    return referenceUrl + options.tier + '/' + options.project;
+  }
+
   let tarball = tar.pack();
 
   let metadata = {
@@ -137,11 +142,6 @@ async function documenter(options) {
         reject(error);
       });
     });
-
-  function getDocumentationUrl() {
-    let referenceUrl = "https://docs.taskcluster.net/reference/";
-    return referenceUrl + options.tier + '/' + options.project;
-  }
 
     // pipe the incoming filestream through compression and up to s3
     tgz.pipe(upload);
