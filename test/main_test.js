@@ -36,8 +36,14 @@ suite('End to End', () => {
       description: 'Another test!',
     });
     references = [
-      {name: 'api', reference: api.reference({baseUrl: 'http://localhost'})},
-      {name: 'events', reference: exchanges.reference({baseUrl: 'http://localhost'})},
+      {
+        name: 'api',
+        reference: api.reference({baseUrl: 'http://localhost'}),
+      },
+      {
+        name: 'events',
+        reference: exchanges.reference({baseUrl: 'http://localhost'}),
+      },
     ];
   });
 
@@ -118,7 +124,6 @@ suite('End to End', () => {
   });
 
   test('test publish tarball', async function() {
-
     //Setting fake credentials to bypass Taskcluster authentication.
     let tempCreds = null;
 
@@ -145,10 +150,7 @@ suite('End to End', () => {
       docsFolder: './test/docs',
       tier,
     });
-    let shoulds = [
-      'docs/example.md',
-      'docs/nested/nested-example.md',
-    ];
+    let shoulds = ['docs/example.md', 'docs/nested/nested-example.md'];
     return assertInTarball(shoulds, doc.tgz);
   });
 
@@ -184,10 +186,7 @@ suite('End to End', () => {
     let doc = await documenter({
       tier,
     });
-    let shoulds = [
-      'docs/documenting-non-services.md',
-      'docs/format.md',
-    ];
+    let shoulds = ['docs/documenting-non-services.md', 'docs/format.md'];
     return assertInTarball(shoulds, doc.tgz);
   });
 
@@ -204,9 +203,7 @@ suite('End to End', () => {
 
     let files = await getObjectsInStream(stream);
 
-    let shoulds = [
-      'metadata.json',
-    ];
+    let shoulds = ['metadata.json'];
 
     for (let should of shoulds) {
       assert.ok(files[should]);

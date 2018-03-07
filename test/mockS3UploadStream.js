@@ -7,7 +7,6 @@ function MockClient(client) {
 }
 
 MockClient.prototype.upload = function(obj) {
-
   let stream = new Writable();
 
   stream._write = function(chunk, encoding, done) {
