@@ -39,8 +39,7 @@ async function documenter(options) {
     'libraries',
     'workers',
   ];
-  assert(
-    tiers.indexOf(options.tier) !== -1,
+  assert(tiers.indexOf(options.tier) !== -1,
     `options.tier must be one of ${tiers.join(', ')}`
   );
 
@@ -53,8 +52,7 @@ async function documenter(options) {
     return {name: path.join(dir || '', name)};
   }
 
-  let documentationUrl =
-    options.referenceUrl + options.tier + '/' + options.project;
+  let documentationUrl = options.referenceUrl + options.tier + '/' + options.project;
 
   let tarball = tar.pack();
 
@@ -65,21 +63,26 @@ async function documenter(options) {
     menuIndex: options.menuIndex,
   };
 
-  tarball.entry(headers('metadata.json'), JSON.stringify(metadata, null, 2));
-
-  _.forEach(options.schemas, (schema, name) =>
-    tarball.entry(headers(name, 'schemas'), schema)
+  tarball.entry(
+    headers('metadata.json'),
+    JSON.stringify(metadata, null, 2)
   );
 
-  _.forEach(options.references, reference =>
-    tarball.entry(
-      headers(reference.name + '.json', 'references'),
-      JSON.stringify(reference.reference, null, 2)
-    )
-  );
+  _.forEach(options.schemas, (schema, name) => tarball.entry(
+    headers(name, 'schemas'),
+    schema
+  ));
+
+  _.forEach(options.references, reference => tarball.entry(
+    headers(reference.name + '.json', 'references'),
+    JSON.stringify(reference.reference, null, 2)
+  ));
 
   try {
-    tarball.entry(headers('README.md'), await fs.readFile(options.readme));
+    tarball.entry(
+      headers('README.md'),
+      await fs.readFile(options.readme)
+    );
   } catch (err) {
     if (err.code !== 'ENOENT') {
       throw err;
@@ -88,15 +91,10 @@ async function documenter(options) {
   }
 
   try {
-    await Promise.all(
-      recursiveReadSync(options.docsFolder).map(async file => {
-        let relativePath = path.relative(options.docsFolder, file);
-        tarball.entry(
-          headers(relativePath, 'docs'),
-          await fs.readFile(file, {encoding: 'utf8'})
-        );
-      })
-    );
+    await Promise.all(recursiveReadSync(options.docsFolder).map(async file => {
+      let relativePath = path.relative(options.docsFolder, file);
+      tarball.entry(headers(relativePath, 'docs'), await fs.readFile(file, {encoding: 'utf8'}));
+    }));
   } catch (err) {
     if (err.code !== 'ENOENT') {
       throw err;
