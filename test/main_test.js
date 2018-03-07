@@ -11,6 +11,8 @@ suite('End to End', () => {
   let API = require('taskcluster-lib-api');
   let Exchanges = require('pulse-publisher');
 
+  let mockS3UploadStream = require('./mockS3UploadStream');
+
   let validate = null;
   let api = null;
   let exchanges = null;
@@ -116,18 +118,24 @@ suite('End to End', () => {
   });
 
   test('test publish tarball', async function() {
+
+    //Setting fake credentials to bypass Taskcluster authentication.
+    let tempCreds = null;
+
     if (!credentials.clientId) {
-      this.skip();
+      tempCreds = {clientId: 'bypassTcCreds', accessToken: '123456'};
     }
+
     let doc = await documenter({
       project: 'docs-testing',
       schemas: validate.schemas,
       tier,
-      credentials,
+      credentials: tempCreds || credentials,
       docsFolder: './test/docs/',
       references,
       bucket: cfg.bucket,
       publish: true,
+      module: mockS3UploadStream,
     });
     assert.ok(doc.tgz);
   });
