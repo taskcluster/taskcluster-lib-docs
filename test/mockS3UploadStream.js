@@ -12,7 +12,7 @@ MockClient.prototype.upload = function(obj) {
   stream._write = function(chunk, encoding, done) {
     stream.emit('part', 'Fake upload for testing purposes is in progress');
     if (!chunk) {
-      stream.emit('error', 'Nothing in is being piped in the stream');
+      stream.emit('error', 'Nothing is being piped in the stream');
     }
     done();
   };
