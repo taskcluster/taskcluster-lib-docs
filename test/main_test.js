@@ -118,23 +118,17 @@ suite('End to End', () => {
   });
 
   test('test publish tarball', async function() {
-    //Setting fake credentials to bypass Taskcluster authentication.
-    let tempCreds = null;
-
-    if (!credentials.clientId) {
-      tempCreds = {clientId: 'bypassTcCreds', accessToken: '123456'};
-    }
 
     let doc = await documenter({
       project: 'docs-testing',
       schemas: validate.schemas,
       tier,
-      credentials: tempCreds || credentials,
+      credentials: {accessKeyId: 'fake', secretAccessKey: 'fake'},
       docsFolder: './test/docs/',
       references,
       bucket: cfg.bucket,
       publish: true,
-      module: mockS3UploadStream,
+      S3UploadStream: mockS3UploadStream,
     });
     assert.ok(doc.tgz);
   });

@@ -11,8 +11,6 @@ let client = require('taskcluster-client');
 let S3UploadStream = require('s3-upload-stream');
 let debug = require('debug')('taskcluster-lib-docs');
 
-let mockS3mockS3UploadStream = require('../test/mockS3UploadStream');
-
 async function documenter(options) {
   options = _.defaults({}, options, {
     referenceUrl: 'https://docs.taskcluster.net/reference/',
@@ -111,24 +109,20 @@ async function documenter(options) {
     if (!creds) {
       //Bypassing Tascluster credentials if none are provided in the config file.
       // For testing purposes only.
-      if (options.credentials['clientId'] === 'bypassTcCreds') {
+      if (options.credentials['accessKeyId'] === 'fake') {
         creds = options.credentials;
       } else {
         let auth = new client.Auth({
           credentials: options.credentials,
           baseUrl: options.authBaseUrl,
         });
-        creds = await auth.awsS3Credentials(
-          'read-write',
-          options.bucket,
-          options.project + '/'
-        );
+        creds = await auth.awsS3Credentials('read-write', options.bucket, options.project + '/');
       }
     }
 
     let s3 = new aws.S3(creds.credentials);
 
-    let s3Stream = (options.module || S3UploadStream)(s3);
+    let s3Stream = (options.S3UploadStream || S3UploadStream)(s3);
 
     let upload = s3Stream.upload({
       Bucket: options.bucket,
@@ -176,20 +170,14 @@ async function downloader(options) {
     credentials: options.credentials,
   });
 
-  let creds = await auth.awsS3Credentials(
-    'read-only',
-    options.bucket,
-    options.project + '/'
-  );
+  let creds = await auth.awsS3Credentials('read-only', options.bucket, options.project + '/');
 
   let s3 = new aws.S3(creds.credentials);
 
-  let readStream = s3
-    .getObject({
-      Bucket: options.bucket,
-      Key: options.project + '/latest.tar.gz',
-    })
-    .createReadStream();
+  let readStream = s3.getObject({
+    Bucket: options.bucket,
+    Key: options.project + '/latest.tar.gz',
+  }).createReadStream();
 
   return readStream.pipe(zlib.Unzip());
 }

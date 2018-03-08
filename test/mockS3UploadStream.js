@@ -1,3 +1,7 @@
+// This module is a mock version of S3UploadStream (from 's3-upload-stream' npm module).
+// To be used in order to bypass unecessary calls to the S3 aws service while testing
+// the Taskcluster library.
+
 const Writable = require('stream').Writable;
 
 function MockClient(client) {
