@@ -107,21 +107,15 @@ async function documenter(options) {
   if (options.publish) {
     let creds = options.aws;
     if (!creds) {
-      //Bypassing Tascluster credentials if none are provided in the config file.
-      // For testing purposes only.
-      if (options.credentials['accessKeyId'] === 'fake') {
-        creds = options.credentials;
-      } else {
-        let auth = new client.Auth({
-          credentials: options.credentials,
-          baseUrl: options.authBaseUrl,
-        });
-        creds = await auth.awsS3Credentials('read-write', options.bucket, options.project + '/');
-      }
+      let auth = new client.Auth({
+        credentials: options.credentials,
+        baseUrl: options.authBaseUrl,
+      });
+
+      creds = await auth.awsS3Credentials('read-write', options.bucket, options.project + '/');
     }
 
     let s3 = new aws.S3(creds.credentials);
-
     let s3Stream = (options.S3UploadStream || S3UploadStream)(s3);
 
     let upload = s3Stream.upload({

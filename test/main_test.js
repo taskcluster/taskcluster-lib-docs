@@ -123,7 +123,7 @@ suite('End to End', () => {
       project: 'docs-testing',
       schemas: validate.schemas,
       tier,
-      credentials: {accessKeyId: 'fake', secretAccessKey: 'fake'},
+      aws: {accessKeyId: 'fake', secretAccessKey: 'fake'},
       docsFolder: './test/docs/',
       references,
       bucket: cfg.bucket,
