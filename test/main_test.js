@@ -108,14 +108,7 @@ suite('documenter', () => {
       schemas: validate.schemas,
       tier,
     });
-    assert.ok(doc.tgz);
-  });
-
-  test('tarball is empty but exists', function() {
-    let doc = documenter({
-      tier,
-    });
-    assert.equal(doc.tgz, null);
+    assert.ok(await doc._tarballStream());
   });
 
   test('tarball contains docs and metadata', async function() {
@@ -127,7 +120,7 @@ suite('documenter', () => {
       'docs/example.md',
       'docs/nested/nested-example.md',
     ];
-    return assertInTarball(shoulds, doc.tgz);
+    return assertInTarball(shoulds, await doc._tarballStream());
   });
 
   test('tarball contains schemas and metadata', async function() {
@@ -141,7 +134,7 @@ suite('documenter', () => {
       'docs/documenting-non-services.md',
       'docs/format.md',
     ];
-    return assertInTarball(shoulds, doc.tgz);
+    return assertInTarball(shoulds, await doc._tarballStream());
   });
 
   test('tarball contains references and metadata', async function() {
@@ -155,7 +148,7 @@ suite('documenter', () => {
       'docs/documenting-non-services.md',
       'docs/format.md',
     ];
-    return assertInTarball(shoulds, doc.tgz);
+    return assertInTarball(shoulds, await doc._tarballStream());
   });
 
   test('tarball contains only metadata', async function() {
@@ -166,7 +159,7 @@ suite('documenter', () => {
       'docs/documenting-non-services.md',
       'docs/format.md',
     ];
-    return assertInTarball(shoulds, doc.tgz);
+    return assertInTarball(shoulds, await doc._tarballStream());
   });
 
   const publishTest = async function(mock) {
@@ -190,7 +183,6 @@ suite('documenter', () => {
     }
 
     const doc = await documenter(options);
-    assert.ok(doc.tgz);
   };
 
   test('test publish tarball (real)', function() {

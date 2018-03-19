@@ -27,101 +27,135 @@ async function documenter(options) {
     references: [],
     publish: process.env.NODE_ENV == 'production',
   });
-
-  assert(options.schemas, 'options.schemas must be given');
-  assert(options.tier, 'options.tier must be given');
-  const tiers = [
-    'core',
-    'platform',
-    'integrations',
-    'operations',
-    'libraries',
-    'workers',
-  ];
-  assert(tiers.indexOf(options.tier) !== -1,
-    `options.tier must be one of ${tiers.join(', ')}`
-  );
-
-  if (!options.project) {
-    let pack = require(path.join(rootdir.get(), 'package.json'));
-    options.project = pack.name;
-  }
-
-  function headers(name, dir) {
-    return {name: path.join(dir || '', name)};
-  }
-
-  let documentationUrl = options.referenceUrl + options.tier + '/' + options.project;
-
-  let tarball = tar.pack();
-
-  let metadata = {
-    version: 1,
-    project: options.project,
-    tier: options.tier,
-    menuIndex: options.menuIndex,
-  };
-
-  tarball.entry(
-    headers('metadata.json'),
-    JSON.stringify(metadata, null, 2)
-  );
-
-  _.forEach(options.schemas, (schema, name) => tarball.entry(
-    headers(name, 'schemas'),
-    schema
-  ));
-
-  _.forEach(options.references, reference => tarball.entry(
-    headers(reference.name + '.json', 'references'),
-    JSON.stringify(reference.reference, null, 2)
-  ));
-
-  try {
-    tarball.entry(
-      headers('README.md'),
-      await fs.readFile(options.readme)
-    );
-  } catch (err) {
-    if (err.code !== 'ENOENT') {
-      throw err;
-    }
-    debug('README.md does not exist. Continuing.');
-  }
-
-  try {
-    await Promise.all(recursiveReadSync(options.docsFolder).map(async file => {
-      let relativePath = path.relative(options.docsFolder, file);
-      tarball.entry(headers(relativePath, 'docs'), await fs.readFile(file, {encoding: 'utf8'}));
-    }));
-  } catch (err) {
-    if (err.code !== 'ENOENT') {
-      throw err;
-    }
-    debug('Docs folder does not exist. Continuing.');
-  }
-
-  tarball.finalize();
-
-  let tgz = tarball.pipe(zlib.createGzip());
-
+  
+  const rv = new Documenter(options);
   if (options.publish) {
-    let creds = options.aws;
+    console.log(rv);
+    await rv.publish();
+  }
+  return rv;
+}
+
+const TIERS = [
+  'core',
+  'platform',
+  'integrations',
+  'operations',
+  'libraries',
+  'workers',
+];
+
+class Documenter {
+  constructor(options) {
+    assert(options.schemas, 'options.schemas must be given');
+    assert(options.tier, 'options.tier must be given');
+    assert(TIERS.indexOf(options.tier) !== -1,
+      `options.tier must be one of ${TIERS.join(', ')}`
+    );
+
+    if (!options.project) {
+      let pack = require(path.join(rootdir.get(), 'package.json'));
+      options.project = pack.name;
+    }
+    delete options.publish;
+    Object.assign(this, options);
+  }
+
+  /**
+   * Get the URL for documentation for this service; used in error messages.
+   */
+  get documentationUrl() {
+    return this.referenceUrl + this.tier + '/' + this.project;
+  }
+
+  /**
+   * Generate a stream containing a tarball with all of the associated metadata.
+   * This is mostly to support the "old way", and when nothing uses the old way
+   * anymore this can be adapted to write data directly to DOCS_OUTPUT_DIR.
+   *
+   * Note that this is a zlib-compressed tarball.
+   */
+  async _tarballStream() {
+    function headers(name, dir) {
+      return {name: path.join(dir || '', name)};
+    }
+
+    let tarball = tar.pack();
+
+    let metadata = {
+      version: 1,
+      project: this.project,
+      tier: this.tier,
+      menuIndex: this.menuIndex,
+    };
+
+    tarball.entry(
+      headers('metadata.json'),
+      JSON.stringify(metadata, null, 2)
+    );
+
+    _.forEach(this.schemas, (schema, name) => tarball.entry(
+      headers(name, 'schemas'),
+      schema
+    ));
+
+    _.forEach(this.references, reference => tarball.entry(
+      headers(reference.name + '.json', 'references'),
+      JSON.stringify(reference.reference, null, 2)
+    ));
+
+    try {
+      tarball.entry(
+        headers('README.md'),
+        await fs.readFile(this.readme)
+      );
+    } catch (err) {
+      if (err.code !== 'ENOENT') {
+        throw err;
+      }
+      debug('README.md does not exist. Continuing.');
+    }
+
+    try {
+      await Promise.all(recursiveReadSync(this.docsFolder).map(async file => {
+        let relativePath = path.relative(this.docsFolder, file);
+        tarball.entry(headers(relativePath, 'docs'), await fs.readFile(file, {encoding: 'utf8'}));
+      }));
+    } catch (err) {
+      if (err.code !== 'ENOENT') {
+        throw err;
+      }
+      debug('Docs folder does not exist. Continuing.');
+    }
+
+    tarball.finalize();
+    return tarball.pipe(zlib.createGzip());
+  }
+
+  /**
+   * Publish the tarball to S3 (the old way).
+   *
+   * This is called automatically if options.publish is true.
+   */
+  async publish() {
+    let tgz = this._tarballStream();
+
+    let creds = this.aws;
     if (!creds) {
       let auth = new client.Auth({
-        credentials: options.credentials,
-        baseUrl: options.authBaseUrl,
+        credentials: this.credentials,
+        baseUrl: this.authBaseUrl,
       });
 
-      creds = await auth.awsS3Credentials('read-write', options.bucket, options.project + '/');
+      creds = await auth.awsS3Credentials('read-write', this.bucket, this.project + '/');
     }
 
     let s3 = new aws.S3(creds.credentials);
-    let s3Stream = (options.S3UploadStream || S3UploadStream)(s3);
+    let s3Stream = (this.S3UploadStream || S3UploadStream)(s3);
 
     let upload = s3Stream.upload({
-      Bucket: options.bucket,
-      Key: options.project + '/latest.tar.gz',
+      Bucket: this.bucket,
+      Key: this.project + '/latest.tar.gz',
     });
 
     // handle progress
@@ -147,11 +181,6 @@ async function documenter(options) {
     tgz.pipe(upload);
     await uploadPromise;
   }
-
-  return {
-    tgz,
-    documentationUrl,
-  };
 }
 
 async function downloader(options) {
