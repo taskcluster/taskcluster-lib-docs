@@ -1,6 +1,7 @@
 const assert = require('assert');
 const {documenter, downloader} = require('../');
 const debug = require('debug')('test');
+const fs = require('fs');
 const _ = require('lodash');
 const tar = require('tar-stream');
 const rootdir = require('app-root-dir');
@@ -12,6 +13,8 @@ const API = require('taskcluster-lib-api');
 const Exchanges = require('pulse-publisher');
 const mockS3UploadStream = require('./mockS3UploadStream');
 const awsMock = require('mock-aws-s3');
+const rimraf = require('rimraf');
+const tmp = require('tmp');
 
 async function getObjectsInStream(inStream) {
   let output = {};
@@ -160,6 +163,26 @@ suite('documenter', () => {
       'docs/format.md',
     ];
     return assertInTarball(shoulds, await doc._tarballStream());
+  });
+
+  test('write() writes a directory', async function() {
+    let doc = await documenter({
+      docsFolder: './test/docs',
+      tier,
+    });
+    let shoulds = [
+      'docs/example.md',
+      'docs/nested/nested-example.md',
+    ];
+    const tmpdir = tmp.dirSync({unsafeCleanup: true});
+    const docsDir = path.join(tmpdir.name, 'docs_output_dir');
+    try {
+      await doc.write({docsDir});
+      shoulds.forEach(name =>
+        assert(fs.existsSync(path.join(docsDir, name)), `${name} should exist`));
+    } finally {
+      tmpdir.removeCallback();
+    }
   });
 
   const publishTest = async function(mock) {

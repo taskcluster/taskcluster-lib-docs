@@ -11,6 +11,8 @@ let aws = require('aws-sdk');
 let client = require('taskcluster-client');
 let S3UploadStream = require('s3-upload-stream');
 let debug = require('debug')('taskcluster-lib-docs');
+let util = require('util');
+let mkdirp = util.promisify(require('mkdirp'));
 
 async function documenter(options) {
   options = _.defaults({}, options, {
@@ -132,6 +134,41 @@ class Documenter {
 
     tarball.finalize();
     return tarball.pipe(zlib.createGzip());
+  }
+
+  /**
+   * Write the tarball to a directory (the new way)
+   */
+  async write({docsDir}) {
+    if (!docsDir) {
+      throw new Error('docsDir is not set');
+    } else if (fs.existsSync(docsDir)) {
+      throw new Error(`docsDir ${docsDir} already exists`);
+    }
+
+    // For the moment, this untar's the tarball created elsewhere in this file;
+    // when the "old way' is no longer used, this should be refactored to just
+    // write the files to the directory directly.
+    const extract = tar.extract();
+
+    await new Promise((resolve, reject) => {
+      extract.on('entry', (header, stream, next) => {
+        // NOTE: we ignore permissions, ownership, etc..
+        const pathname = path.join(docsDir, header.name);
+        mkdirp(path.dirname(pathname)).then(() => {
+          stream.once('end', next);
+          stream.once('error', reject);
+          stream.pipe(fs.createWriteStream(pathname));
+        }).catch(reject);
+      });
+
+      extract.on('finish', resolve);
+      extract.on('error', reject);
+
+      this._tarballStream()
+        .then(tbStream => tbStream.pipe(zlib.Unzip()).pipe(extract))
+        .catch(reject);
+    });
   }
 
   /**
