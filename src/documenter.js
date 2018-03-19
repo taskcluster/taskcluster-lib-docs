@@ -36,6 +36,8 @@ async function documenter(options) {
   return rv;
 }
 
+module.exports = documenter;
+
 const TIERS = [
   'core',
   'platform',
@@ -138,7 +140,7 @@ class Documenter {
    * This is called automatically if options.publish is true.
    */
   async publish() {
-    let tgz = this._tarballStream();
+    let gz = this._tarballStream();
 
     let creds = this.aws;
     if (!creds) {
@@ -182,36 +184,3 @@ class Documenter {
     await uploadPromise;
   }
 }
-
-async function downloader(options) {
-  options = _.defaults({}, options, {
-    credentials: {},
-    bucket: 'taskcluster-raw-docs',
-    project: null,
-  });
-
-  let auth = new client.Auth({
-    credentials: options.credentials,
-  });
-
-  let s3;
-  if (options._s3) {
-    s3 = options._s3;
-  } else {
-    let creds = await auth.awsS3Credentials('read-only', options.bucket, options.project + '/');
-    s3 = new aws.S3(creds.credentials);
-  }
-
-  let readStream = s3.getObject({
-    Bucket: options.bucket,
-    Key: options.project + '/latest.tar.gz',
-  }).createReadStream();
-
-  return readStream.pipe(zlib.Unzip());
-}
-
-// Export documenter as top-level function, it's the only thing used by most
-// people importing this library.
-documenter.downloader = downloader;
-documenter.documenter = documenter; // For backwards compatibility
-module.exports = documenter;

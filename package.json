@@ -46,5 +46,5 @@
     "taskcluster-lib-validate": "^3.0.1",
     "typed-env-config": "^1.1.0"
   },
-  "main": "./lib/docs.js"
+  "main": "./lib/index.js"
 }

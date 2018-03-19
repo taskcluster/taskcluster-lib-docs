@@ -1,4 +1,5 @@
-import docs from './docs';
+const docs = require('..');
+
 const main = async () => {
   let env = v => {
     if (!process.env[v]) {
