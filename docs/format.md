@@ -31,7 +31,8 @@ The `metadata.json` file should contain the following:
 {
   "version": 1,
   "tier": "core",
-  "menuIndex": 10
+  "menuIndex": 10,
+  "project": "projectName"
 }
 ```
 
