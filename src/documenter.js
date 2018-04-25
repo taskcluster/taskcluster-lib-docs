@@ -175,7 +175,7 @@ class Documenter {
    * This is called automatically if options.publish is true.
    */
   async publish() {
-    let gz = this._tarballStream();
+    let gz = await this._tarballStream();
 
     let creds = this.options.aws;
     if (!creds) {
@@ -188,7 +188,7 @@ class Documenter {
     }
 
     let s3 = new aws.S3(creds.credentials);
-    let s3Stream = (this.options.S3UploadStream || S3UploadStream)(s3);
+    let s3Stream = new (this.options.S3UploadStream || S3UploadStream)(s3);
 
     let upload = s3Stream.upload({
       Bucket: this.options.bucket,
@@ -215,7 +215,7 @@ class Documenter {
     });
 
     // pipe the incoming filestream through compression and up to s3
-    tgz.pipe(upload);
+    gz.pipe(upload);
     await uploadPromise;
   }
 }
