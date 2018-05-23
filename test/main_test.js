@@ -7,7 +7,7 @@ const tar = require('tar-stream');
 const rootdir = require('app-root-dir');
 const zlib = require('zlib');
 const path = require('path');
-const validator = require('taskcluster-lib-validate');
+const SchemaSet = require('taskcluster-lib-validate');
 const config = require('typed-env-config');
 const API = require('taskcluster-lib-api');
 const Exchanges = require('pulse-publisher');
@@ -78,7 +78,7 @@ function assertInTarball(shoulds, tarball) {
 }
 
 suite('documenter', () => {
-  let validate = null;
+  let schemaset = null;
   let api = null;
   let exchanges = null;
   let references = null;
@@ -87,9 +87,9 @@ suite('documenter', () => {
   let tier = 'core';
 
   suiteSetup(async () => {
-    validate = await validator({
+    schemaset = new SchemaSet({
       folder: './test/schemas',
-      baseUrl: 'http://localhost:1203/',
+      serviceName: 'whatever',
       constants: {'my-constant': 42},
     });
     api = new API({
@@ -108,7 +108,7 @@ suite('documenter', () => {
 
   test('tarball exists', async function() {
     let doc = await documenter({
-      schemas: validate.schemas,
+      schemaset,
       tier,
     });
     assert.ok(await doc._tarballStream());
@@ -128,7 +128,7 @@ suite('documenter', () => {
 
   test('tarball contains schemas and metadata', async function() {
     let doc = await documenter({
-      schemas: validate.schemas,
+      schemaset,
       tier,
     });
     let shoulds = [
@@ -188,7 +188,7 @@ suite('documenter', () => {
   const publishTest = async function(mock) {
     const options = {
       project: 'docs-testing',
-      schemas: validate.schemas,
+      schemaset,
       tier,
       docsFolder: './test/docs/',
       references,
