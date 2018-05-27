@@ -96,7 +96,7 @@ class Documenter {
     );
 
     if (this.options.schemaset) {
-      _.forEach(this.options.schemaset.taskclusterSchemas(), (schema, name) => tarball.entry(
+      _.forEach(this.options.schemaset.abstractSchemas(), (schema, name) => tarball.entry(
         headers(name, 'schemas'),
         JSON.stringify(schema, null, 2)
       ));

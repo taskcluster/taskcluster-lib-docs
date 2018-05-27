@@ -165,24 +165,38 @@ suite('documenter', () => {
     return assertInTarball(shoulds, await doc._tarballStream());
   });
 
-  test('write() writes a directory', async function() {
+  const withWrittenDocs = async cb => {
     let doc = await documenter({
       docsFolder: './test/docs',
+      schemaset,
       tier,
     });
-    let shoulds = [
-      'docs/example.md',
-      'docs/nested/nested-example.md',
-    ];
     const tmpdir = tmp.dirSync({unsafeCleanup: true});
     const docsDir = path.join(tmpdir.name, 'docs_output_dir');
     try {
       await doc.write({docsDir});
-      shoulds.forEach(name =>
-        assert(fs.existsSync(path.join(docsDir, name)), `${name} should exist`));
+      await cb(docsDir);
     } finally {
       tmpdir.removeCallback();
     }
+  };
+
+  test('write() writes a directory', async function() {
+    await withWrittenDocs(docsDir => {
+      const shoulds = [
+        'docs/example.md',
+        'docs/nested/nested-example.md',
+      ];
+      shoulds.forEach(name =>
+        assert(fs.existsSync(path.join(docsDir, name)), `${name} should exist`));
+    });
+  });
+
+  test('writen schemas are abstract', async function() {
+    await withWrittenDocs(docsDir => {
+      const schema = JSON.parse(fs.readFileSync(path.join(docsDir, 'schemas', 'bar.json')));
+      assert.equal(schema.$id, 'taskcluster:/schemas/whatever/bar.json#');
+    });
   });
 
   const publishTest = async function(mock) {

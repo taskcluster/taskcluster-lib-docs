@@ -77,11 +77,10 @@ let load = loader({
     requires: ['profile'],
     setup: ({profile}) => config({profile}),
   },
-  schamaset: {
+  schemaset: {
     requires: ['cfg'],
     setup: ({cfg}) => new SchemaSet({
-      prefix: 'service/v1/',
-      aws: cfg.aws,
+      serviceName: 'myservice',
     }),
   },
   reference: {
@@ -161,7 +160,7 @@ The following are the options that can be passed to the publisher function in th
     tier: null,
 
     // This should be a schemaset from taskcluster-lib-validate
-    // It provides the schemas necessary to generate the api and events references.
+    // It provides the data necessary to generate the schema files
     schemaset: null,
 
     // Optionally help taskcluster-docs pick the order this documetation should appear in on the list.
