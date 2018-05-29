@@ -9,7 +9,7 @@ const zlib = require('zlib');
 const path = require('path');
 const SchemaSet = require('taskcluster-lib-validate');
 const config = require('typed-env-config');
-const API = require('taskcluster-lib-api');
+const APIBuilder = require('taskcluster-lib-api');
 const Exchanges = require('pulse-publisher');
 const MockS3UploadStream = require('./mockS3UploadStream');
 const awsMock = require('mock-aws-s3');
@@ -79,7 +79,6 @@ function assertInTarball(shoulds, tarball) {
 
 suite('documenter', () => {
   let schemaset = null;
-  let api = null;
   let exchanges = null;
   let references = null;
   let cfg = config({});
@@ -92,16 +91,18 @@ suite('documenter', () => {
       serviceName: 'whatever',
       constants: {'my-constant': 42},
     });
-    api = new API({
+    const builder = new APIBuilder({
       title: 'Testing Stuff',
       description: 'This is for testing stuff!',
+      serviceName: 'whatever',
+      version: 'v1',
     });
     exchanges = new Exchanges({
       title: 'Testing Stuff Again',
       description: 'Another test!',
     });
     references = [
-      {name: 'api', reference: api.reference({baseUrl: 'http://localhost'})},
+      {name: 'api', reference: builder.reference()},
       {name: 'events', reference: exchanges.reference({baseUrl: 'http://localhost'})},
     ];
   });
