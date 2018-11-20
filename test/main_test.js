@@ -199,7 +199,7 @@ suite('documenter', () => {
   test('writen schemas are abstract', async function() {
     await withWrittenDocs(docsDir => {
       const schema = JSON.parse(fs.readFileSync(path.join(docsDir, 'schemas', 'bar.json')));
-      assert.equal(schema.$id, 'taskcluster:/schemas/whatever/bar.json#');
+      assert.equal(schema.$id, '/schemas/whatever/bar.json#');
     });
   });
 
