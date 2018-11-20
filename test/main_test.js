@@ -102,7 +102,7 @@ suite('documenter', () => {
       description: 'Another test!',
       serviceName: 'test',
       projectName: 'taskcluster-test',
-      version: 'v1',
+      apiVersion: 'v1',
     });
     references = [
       {name: 'api', reference: builder.reference()},
